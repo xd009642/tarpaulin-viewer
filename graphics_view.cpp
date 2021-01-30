@@ -29,7 +29,7 @@ void graphics_view::reset() {
 }
 
 
-void graphics_view::create_scene(const QVector<Event>& events) {
+void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& events) {
     qreal MARGIN = 30.0;
     QGraphicsScene* s = scene();
     s->clear();
@@ -42,13 +42,17 @@ void graphics_view::create_scene(const QVector<Event>& events) {
     auto height = 4.1 * fm.height();
     qreal y_pos = - (MARGIN + height);
     for(const auto& event: events) {
-        if(auto conf = std::get_if<Config>(&event)) {
+        if(!event) {
+            continue;
+        }
+
+        if(auto conf = std::get_if<Config>(event.get())) {
             configs.push_back(std::make_pair(x_pos, conf->name));
             x_pos += MARGIN + fm.width(conf->name);
-        } else if(auto bin = std::get_if<TestBinary>(&event)) {
+        } else if(auto bin = std::get_if<TestBinary>(event.get())) {
             binaries.push_back(std::make_pair(x_pos, TestBinary(*bin)));
             x_pos += MARGIN + fm.width(bin->path);
-        } else if(auto trace = std::get_if<TraceEvent>(&event)) {
+        } else if(auto trace = std::get_if<TraceEvent>(event.get())) {
             if(trace->pid) {
                 auto y = 0.0;
                 auto y_it = pid_heights.find(trace->pid.value());
@@ -59,12 +63,26 @@ void graphics_view::create_scene(const QVector<Event>& events) {
                     y_pos -= height;
                     pid_heights[trace->pid.value()] = y;
                 }
+
                 auto contents = trace->to_string();
                 auto text_box = s->addText(contents, render_font);
                 text_box->setPos(x_pos, y);
                 auto rect = text_box->boundingRect();
                 rect.moveTo(x_pos, y);
                 s->addRect(rect);
+                if(trace->child) {
+                    auto child_y = 0.0;
+                    auto y_it = pid_heights.find(trace->child.value());
+                    if(y_it != pid_heights.end()) {
+                        child_y = y_it->second;
+                    } else {
+                        child_y = y_pos;
+                        y_pos -= height;
+                        pid_heights[trace->child.value()] = child_y;
+                    }
+                    auto x_start = x_pos + text_box->boundingRect().width();
+                    s->addLine(x_start, y, x_start+2.0*MARGIN, child_y+MARGIN);
+                }
                 x_pos += 2.0*MARGIN + text_box->boundingRect().width();
             }
         } else {

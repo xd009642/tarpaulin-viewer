@@ -111,20 +111,20 @@ void TarpaulinViewer::load_traces() {
     }
     QJsonObject root = doc.object();
     QJsonArray events = root.value("events").toArray();
-    QVector<Event> parsed_events;
+    std::vector<std::shared_ptr<Event>> parsed_events;
     for(const QJsonValue& event: events) {
         // Event is either: ConfigLaunch, BinaryLaunch, Trace
         auto obj = event.toObject();
         for(auto entry = obj.begin(); entry!=obj.end(); ++entry) {
             if(entry.key() == "ConfigLaunch") {
                 auto conf = Config { entry.value().toString()};
-                parsed_events.push_back(conf);
+                parsed_events.push_back(std::make_shared<Event>(conf));
             } else if(entry.key() == "BinaryLaunch") {
                 TestBinary bin =json_to_bin(entry.value().toObject());
-                parsed_events.push_back(bin);
+                parsed_events.push_back(std::make_shared<Event>(bin));
             } else if(entry.key() == "Trace") {
                 TraceEvent event = json_to_trace(entry.value().toObject());
-                parsed_events.push_back(event);
+                parsed_events.push_back(std::make_shared<Event>(event));
             }
         }
     }
