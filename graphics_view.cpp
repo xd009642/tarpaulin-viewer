@@ -10,7 +10,7 @@
 #include <map>
 
 bool node_compare(const std::shared_ptr<Node>& a, const std::shared_ptr<Node>& b) {
-    return a->event_index < b->event_index;
+    return a->event_index > b->event_index;
 }
 
 graphics_view::graphics_view(QWidget *parent):
@@ -57,8 +57,11 @@ void graphics_view::layout_scene() {
     qDebug()<<"Lane height: "<<lane_height;
     while(!queue.empty()) {
         std::shared_ptr<Node> node = queue.top();
+        queue.pop();
+
         if(node->event_index != last_index + 1) {
-            qDebug()<<"Index assumption has broken!";
+            qDebug()<<"Index assumption has broken! "<<node->event_index<<":"<<last_index+1;
+            break;
         }
         auto rect = node->view->boundingRect();
         if(auto trace = std::get_if<TraceEvent>(node->event.get())) {
@@ -70,13 +73,11 @@ void graphics_view::layout_scene() {
             auto ypos = pid_heights[pid];
             node->view->setY(ypos + rect.height()/2.0);
             node->view->setX(xpos);
-            qDebug()<<xpos<<":"<<(ypos + rect.height()/2.0);
             // EDGES
         } else {
             node->view->setX(xpos);
             x_gridlines.push_back(xpos + rect.width()/2.0);
-            node->view->setY(2);
-            qDebug()<<xpos<<":"<<2;
+            node->view->setY(MARGIN+lane_height);
         }
         xpos += rect.width() + MARGIN;
         last_index = node->event_index;
@@ -85,8 +86,6 @@ void graphics_view::layout_scene() {
                 queue.push(node);
             }
         }
-        queue.pop();
-
     }
     update();
 }
@@ -103,7 +102,6 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
         if(!event) {
             continue;
         }
-
         if(auto conf = std::get_if<Config>(event.get())) {
             auto text_box = s->addText(conf->name, render_font);
             auto node = std::make_shared<Node>(index, text_box, event);
