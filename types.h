@@ -45,7 +45,16 @@ struct TraceEvent {
         if(auto ch = child) {
             contents.append(QString("child: %1\n").arg((int)*ch));
         }
-
+        if(auto sig = signal) {
+            contents.append(*sig);
+            contents.append('\n');
+        }
+        if(auto a = addr) {
+            contents.append(QString("addr: %1\n").arg((uint64_t)*a));
+        }
+        if(auto r = ret) {
+            contents.append(QString("return: %1\n").arg((int)*r));
+        }
         contents.append(description);
         return contents;
     }

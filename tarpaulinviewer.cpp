@@ -12,7 +12,7 @@
 TraceEvent json_to_trace(const QJsonObject obj) {
     TraceEvent event;
     auto pid = obj.find("pid");
-    if(pid != obj.end()) {
+    if(pid != obj.end() && !pid->isNull()) {
         event.pid = pid->toInt();
     }
     auto child = obj.find("child");
@@ -25,7 +25,7 @@ TraceEvent json_to_trace(const QJsonObject obj) {
     }
     auto addr = obj.find("addr");
     if(addr != obj.end() && !addr->isNull()) {
-        event.addr = addr->toInt();
+        event.addr = (uint64_t)addr->toDouble();
     }
     auto ret = obj.find("return_val");
     if(ret != obj.end() && !ret->isNull()) {

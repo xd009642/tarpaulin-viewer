@@ -41,7 +41,7 @@ void graphics_view::layout_scene() {
     }
     QGraphicsScene* s = scene();
     std::map<int, qreal> pid_heights;
-    qreal MARGIN = 30.0;
+    qreal MARGIN = 10.0;
     qreal xpos = MARGIN;
     std::vector<qreal> x_gridlines;
     node_queue queue(node_compare);
@@ -55,33 +55,43 @@ void graphics_view::layout_scene() {
         }
     }
     qDebug()<<"Lane height: "<<lane_height;
-    auto meta_y = MARGIN+lane_height;
+    auto meta_y = 3.0*MARGIN+lane_height;
     while(!queue.empty()) {
         std::shared_ptr<Node> node = queue.top();
         queue.pop();
-
+        auto pid_opt = get_pid(node->event);
+        if(!pid_opt) {
+            qDebug()<<"No PID";
+        }
         if(node->event_index != last_index + 1) {
             qDebug()<<"Index assumption has broken! "<<node->event_index<<":"<<last_index+1;
             break;
         }
         auto rect = node->view->boundingRect();
-        if(auto trace = std::get_if<TraceEvent>(node->event.get())) {
-            auto pid = get_pid(node->event).value_or(0);
-            if(pid_heights.find(pid) == pid_heights.end()) {
-                // Work out height and insert
-                pid_heights[pid] = pid_heights.size() * -lane_height;
-            }
-            auto ypos = pid_heights[pid];
-            node->view->setY(ypos + rect.height()/2.0);
-            node->view->setX(xpos);
-            s->addRect(node->view->sceneBoundingRect());
-            // EDGES
-            if(auto parent = node->parent.lock()) {
 
-                auto left_connector = node->view->sceneBoundingRect().topLeft();
-                auto parent_rect = parent->view->sceneBoundingRect();
-                auto right_connector = parent_rect.topRight();
-                s->addLine({left_connector, right_connector});
+        if(auto trace = std::get_if<TraceEvent>(node->event.get())) {
+            if(!pid_opt) {
+                node->view->setX(xpos);
+                x_gridlines.push_back(xpos + rect.width()/2.0);
+                node->view->setY(meta_y);
+            } else {
+                auto pid = pid_opt.value();
+                if(pid_heights.find(pid) == pid_heights.end()) {
+                    // Work out height and insert
+                    pid_heights[pid] = pid_heights.size() * -lane_height;
+                }
+                auto ypos = pid_heights[pid];
+                node->view->setY(ypos);
+                node->view->setX(xpos);
+                s->addRect(node->view->sceneBoundingRect());
+                // EDGES
+                if(auto parent = node->parent.lock()) {
+
+                    auto left_connector = node->view->sceneBoundingRect().topLeft();
+                    auto parent_rect = parent->view->sceneBoundingRect();
+                    auto right_connector = parent_rect.topRight();
+                    s->addLine({left_connector, right_connector});
+                }
             }
         } else {
             node->view->setX(xpos);
