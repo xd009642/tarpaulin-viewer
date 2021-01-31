@@ -55,6 +55,7 @@ void graphics_view::layout_scene() {
         }
     }
     qDebug()<<"Lane height: "<<lane_height;
+    auto meta_y = MARGIN+lane_height;
     while(!queue.empty()) {
         std::shared_ptr<Node> node = queue.top();
         queue.pop();
@@ -73,11 +74,19 @@ void graphics_view::layout_scene() {
             auto ypos = pid_heights[pid];
             node->view->setY(ypos + rect.height()/2.0);
             node->view->setX(xpos);
+            s->addRect(node->view->sceneBoundingRect());
             // EDGES
+            if(auto parent = node->parent.lock()) {
+
+                auto left_connector = node->view->sceneBoundingRect().topLeft();
+                auto parent_rect = parent->view->sceneBoundingRect();
+                auto right_connector = parent_rect.topRight();
+                s->addLine({left_connector, right_connector});
+            }
         } else {
             node->view->setX(xpos);
             x_gridlines.push_back(xpos + rect.width()/2.0);
-            node->view->setY(MARGIN+lane_height);
+            node->view->setY(meta_y);
         }
         xpos += rect.width() + MARGIN;
         last_index = node->event_index;
