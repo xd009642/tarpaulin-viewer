@@ -58,11 +58,9 @@ void graphics_view::layout_scene() {
     auto meta_y = 3.0*MARGIN+lane_height;
     while(!queue.empty()) {
         std::shared_ptr<Node> node = queue.top();
+        event_indexes[node->view] = node->event_index;
         queue.pop();
         auto pid_opt = get_pid(node->event);
-        if(!pid_opt) {
-            qDebug()<<"No PID";
-        }
         if(node->event_index != last_index + 1) {
             qDebug()<<"Index assumption has broken! "<<node->event_index<<":"<<last_index+1;
             break;
@@ -113,6 +111,7 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
     QGraphicsScene* s = scene();
     s->clear();
     nodes.clear();
+    event_indexes.clear();
     QFontMetrics fm(render_font);
     std::set<uint64_t> pid_set;
     pid_set.insert(0);
@@ -165,4 +164,46 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
         index += 1;
     }
     layout_scene();
+}
+
+
+void graphics_view::mousePressEvent(QMouseEvent *event) {
+    auto graphics_items = items(event->pos());
+    for(auto& item: graphics_items) {
+        if(event_indexes.find(item) != event_indexes.end()) {
+            selected_node = event_indexes[item];
+            break;
+        } else {
+            // This is the outline... Change the color ideallly
+        }
+    }
+    if(selected_node && graphics_items.empty()) {
+        // We need to deselect
+        selected_node = std::nullopt;
+    }
+}
+
+// Todo be less lazy with move_left move_right
+
+void graphics_view::move_left() {
+    if(auto index = selected_node) {
+        if(*index > 0 && !nodes.empty()) {
+            selected_node = *index - 1;
+            centerOn(nodes[*index-1]->view);
+        }
+    } else {
+        pan(-5.0, 0.0);
+    }
+}
+
+void graphics_view::move_right() {
+    if(auto index = selected_node) {
+        if(*index + 1 < nodes.size()) {
+            selected_node = *index + 1;
+            centerOn(nodes[*index+1]->view);
+        }
+    } else {
+        pan(5.0, 0.0);
+    }
+
 }

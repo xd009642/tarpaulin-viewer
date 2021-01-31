@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 #include "types.h"
+#include <optional>
 
 
 struct Node {
@@ -37,9 +38,18 @@ public:
 public slots:
     void reset();
 
+    void move_left();
+
+    void move_right();
+
 protected:
+    void mousePressEvent(QMouseEvent *event) override;
+
+
+    std::optional<size_t> selected_node;
     size_t pid_count = 0;
     std::vector<std::shared_ptr<Node>> nodes;
+    std::map<QGraphicsItem*, size_t> event_indexes;
     QFont render_font;
 };
 

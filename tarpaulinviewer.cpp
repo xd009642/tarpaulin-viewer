@@ -136,11 +136,11 @@ void TarpaulinViewer::keyReleaseEvent(QKeyEvent* event)
 {
     switch(event->key()) {
     case Qt::Key_Left: {
-        ui->graphicsView->pan(-5.0, 0.0);
+        ui->graphicsView->move_left();
         break;
     }
     case Qt::Key_Right: {
-        ui->graphicsView->pan(5.0, 0.0);
+        ui->graphicsView->move_right();
         break;
     }
     case Qt::Key_Up: {
