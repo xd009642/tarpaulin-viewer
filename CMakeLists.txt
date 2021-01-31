@@ -35,6 +35,7 @@ if(ANDROID)
     graphics_view.cpp
     graphics_view.h
     types.h
+    types.cpp
     tarpaulinviewer.ui
   )
 else()
@@ -45,6 +46,7 @@ else()
     graphics_view.cpp
     graphics_view.h
     types.h
+    types.cpp
     tarpaulinviewer.ui
   )
 endif()

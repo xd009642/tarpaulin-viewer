@@ -2,18 +2,23 @@
 #define GRAPHICS_VIEW_H
 
 #include <QGraphicsView>
+#include <QFont>
 #include <memory>
 #include <vector>
 #include "types.h"
 
 
 struct Node {
-    int event_index;
-    int pid;
+    Node(size_t index, QGraphicsItem* item, std::shared_ptr<Event> event):
+        event_index(index),
+        view(item),
+        event(event)
+    {}
+    size_t event_index;
     QGraphicsItem* view;
-    Event event;
+    std::shared_ptr<Event> event;
     std::vector<std::weak_ptr<Node>> children;
-    std::vector<std::weak_ptr<Node>> parents;// Do I?
+    std::weak_ptr<Node> parent;
 };
 
 class graphics_view: public QGraphicsView
@@ -27,12 +32,15 @@ public:
     void pan(qreal dx, qreal dy);
 
     void create_scene(const std::vector<std::shared_ptr<Event>>& events);
+
+    void layout_scene();
 public slots:
     void reset();
 
 protected:
-
+    size_t pid_count = 0;
     std::vector<std::shared_ptr<Node>> nodes;
+    QFont render_font;
 };
 
 #endif // GRAPHICS_VIEW_H

@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <QString>
+#include <memory>
 #include <optional>
 #include <variant>
 #include <QDebug>
@@ -52,5 +53,11 @@ struct TraceEvent {
 
 using Event = std::variant<Config, TestBinary, TraceEvent>;
 
+
+std::optional<uint64_t> get_child(std::shared_ptr<Event> event);
+
+std::optional<uint64_t> get_pid(std::shared_ptr<Event> event);
+
+bool is_end_node(std::shared_ptr<Event> event);
 
 #endif // TYPES_H
