@@ -42,7 +42,9 @@ public slots:
 
     void move_right();
 
+    void deselect();
 protected:
+    void highlight_selected();
     void mousePressEvent(QMouseEvent *event) override;
 
 

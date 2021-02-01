@@ -166,20 +166,50 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
     layout_scene();
 }
 
+void graphics_view::deselect() {
+    if(selected_node && !nodes.empty()) {
+        auto value = selected_node.value();
+        auto centre = nodes[value]->view->sceneBoundingRect().center().toPoint();
+        auto old_items = items(mapFromScene(centre));
+        for(auto& item: old_items) {
+            // This is the outline... Change the color ideallly
+            QGraphicsRectItem* rect = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+            if(rect) {
+                rect->setPen(QPen(Qt::black));
+            }
+        }
+    }
+    selected_node = std::nullopt;
+}
+
+void graphics_view::highlight_selected() {
+    if(selected_node && !nodes.empty()) {
+        auto value = selected_node.value();
+        auto centre = nodes[value]->view->sceneBoundingRect().center().toPoint();
+        auto old_items = items(mapFromScene(centre));
+        for(auto& item: old_items) {
+            // This is the outline... Change the color ideallly
+            QGraphicsRectItem* rect = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+            if(rect) {
+                rect->setPen(QPen(Qt::red));
+            }
+        }
+    }
+}
 
 void graphics_view::mousePressEvent(QMouseEvent *event) {
     auto graphics_items = items(event->pos());
+    deselect();
     for(auto& item: graphics_items) {
         if(event_indexes.find(item) != event_indexes.end()) {
             selected_node = event_indexes[item];
-            break;
         } else {
             // This is the outline... Change the color ideallly
+            QGraphicsRectItem* rect = qgraphicsitem_cast<QGraphicsRectItem*>(item);
+            if(rect) {
+                rect->setPen(QPen(Qt::red));
+            }
         }
-    }
-    if(selected_node && graphics_items.empty()) {
-        // We need to deselect
-        selected_node = std::nullopt;
     }
 }
 
@@ -188,22 +218,27 @@ void graphics_view::mousePressEvent(QMouseEvent *event) {
 void graphics_view::move_left() {
     if(auto index = selected_node) {
         if(*index > 0 && !nodes.empty()) {
+            deselect();
             selected_node = *index - 1;
             centerOn(nodes[*index-1]->view);
+            highlight_selected();
         }
     } else {
         pan(-5.0, 0.0);
     }
+    update();
 }
 
 void graphics_view::move_right() {
     if(auto index = selected_node) {
         if(*index + 1 < nodes.size()) {
+            deselect();
             selected_node = *index + 1;
             centerOn(nodes[*index+1]->view);
+            highlight_selected();
         }
     } else {
         pan(5.0, 0.0);
     }
-
+    update();
 }
