@@ -26,6 +26,19 @@ TraceEvent json_to_trace(const QJsonObject obj) {
     auto addr = obj.find("addr");
     if(addr != obj.end() && !addr->isNull()) {
         event.addr = (uint64_t)addr->toDouble();
+        auto location = obj.find("location");
+        if(location != obj.end() && !location->isNull()) {
+            auto loc = location->toObject();
+            // if we have a location we have a file and a line
+            auto file = loc.find("file")->toString();
+            auto index = file.indexOf("src");
+            if(index > -1) {
+                file.remove(0, index);
+            }
+            auto line = (int)loc.find("line")->toDouble();
+            event.file = file;
+            event.line = line;
+        }
     }
     auto ret = obj.find("return_val");
     if(ret != obj.end() && !ret->isNull()) {

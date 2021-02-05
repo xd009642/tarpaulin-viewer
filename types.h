@@ -35,6 +35,8 @@ struct TraceEvent {
     std::optional<QString> signal;
     std::optional<uint64_t> addr;
     std::optional<uint64_t> ret;
+    std::optional<QString> file;
+    std::optional<int> line;
     QString description;
 
     QString to_string() const {
@@ -51,6 +53,10 @@ struct TraceEvent {
         }
         if(auto a = addr) {
             contents.append(QString("addr: %1\n").arg((uint64_t)*a));
+        }
+        if(auto f = file) {
+            auto l = line.value_or(0);
+            contents.append(QString("%1:%2\n").arg(*f).arg(l));
         }
         if(auto r = ret) {
             contents.append(QString("return: %1\n").arg((int)*r));
