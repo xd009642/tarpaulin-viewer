@@ -40,9 +40,15 @@ public slots:
 
     void move_left();
 
+    void move_pid_left();
+
     void move_right();
 
+    void move_pid_right();
+
     void deselect();
+
+    void next_failure();
 protected:
     void highlight_selected();
     void mousePressEvent(QMouseEvent *event) override;
@@ -53,6 +59,7 @@ protected:
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<QGraphicsItem*, size_t> event_indexes;
     QFont render_font;
+    std::vector<std::weak_ptr<Node>> bad_nodes;
 };
 
 #endif // GRAPHICS_VIEW_H

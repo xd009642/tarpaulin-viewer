@@ -135,12 +135,24 @@ void TarpaulinViewer::load_traces() {
 void TarpaulinViewer::keyReleaseEvent(QKeyEvent* event)
 {
     switch(event->key()) {
+    case Qt::Key_F: {
+        ui->graphicsView->next_failure();
+        break;
+    }
     case Qt::Key_Left: {
-        ui->graphicsView->move_left();
+        if(event->modifiers()==Qt::ControlModifier) {
+            ui->graphicsView->move_pid_left();
+        } else {
+            ui->graphicsView->move_left();
+        }
         break;
     }
     case Qt::Key_Right: {
-        ui->graphicsView->move_right();
+        if(event->modifiers()==Qt::ControlModifier) {
+            ui->graphicsView->move_pid_right();
+        } else {
+            ui->graphicsView->move_right();
+        }
         break;
     }
     case Qt::Key_Up: {

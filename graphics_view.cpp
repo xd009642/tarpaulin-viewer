@@ -81,7 +81,11 @@ void graphics_view::layout_scene() {
                 auto ypos = pid_heights[pid];
                 node->view->setY(ypos);
                 node->view->setX(xpos);
-                s->addRect(node->view->sceneBoundingRect());
+                auto rect = s->addRect(node->view->sceneBoundingRect());
+                if(trace->is_bad()) {
+                    rect->setBrush(QColor(255, 0, 0, 90));
+                    bad_nodes.push_back(node);
+                }
                 // EDGES
                 if(auto parent = node->parent.lock()) {
 
@@ -241,4 +245,75 @@ void graphics_view::move_right() {
         pan(5.0, 0.0);
     }
     update();
+}
+
+void graphics_view::move_pid_left() {
+    if(auto index = selected_node) {
+        auto node = nodes[*index];
+        deselect();
+        if(auto parent = node->parent.lock()) {
+            selected_node = parent->event_index;
+        }
+        if(auto index = selected_node) {
+            centerOn(nodes[*index]->view);
+        }
+        highlight_selected();
+        update();
+    }
+}
+
+void graphics_view::move_pid_right() {
+    if(auto index = selected_node) {
+        auto node = nodes[*index];
+        deselect();
+        auto pid = get_pid(node->event);
+        std::optional<size_t> new_index = std::nullopt;
+        for(const auto& child_ref: node->children) {
+            if(auto child = child_ref.lock()) {
+                auto child_pid = get_pid(node->event);
+                if(child_pid == pid) {
+                    new_index = child->event_index;
+                    break;
+                } else if(auto current = new_index) {
+                    if(child->event_index < *current) {
+                        new_index = child->event_index;
+                    }
+                } else {
+                    new_index = child->event_index;
+                }
+            }
+        }
+        selected_node = new_index;
+        if(auto index = selected_node) {
+            centerOn(nodes[*index]->view);
+        }
+        highlight_selected();
+        update();
+    }
+}
+
+
+void graphics_view::next_failure() {
+    std::shared_ptr<Node> first;
+    qDebug()<<"Bad nodes "<<bad_nodes.size();
+    for(int i=0; i<bad_nodes.size(); i++) {
+        if(auto node = bad_nodes[i].lock()) {
+            if(!first) {
+                first = node;
+            }
+            // Check if x positon is beyond the current view if so jump to it
+            auto current_centre = mapToScene(rect().center());
+            auto node_pos = node->view->scenePos();
+            if(node_pos.x() > current_centre.x()) {
+
+                deselect();
+                selected_node = node->event_index;
+                centerOn(node->view);
+                highlight_selected();
+            }
+        } else {
+            bad_nodes.erase(bad_nodes.begin() + i);
+            i--;
+        }
+    }
 }

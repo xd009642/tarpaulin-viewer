@@ -58,6 +58,20 @@ struct TraceEvent {
         contents.append(description);
         return contents;
     }
+
+    bool is_bad() const {
+        bool bad = false;
+        if(auto r = ret) {
+            bad |= (*r != 0);
+        }
+        if(bad) {
+            return bad;
+        }
+        if(auto s = signal) {
+            bad |= (*s == "SIGSEGV") | (*s == "SIGILL");
+        }
+        return bad;
+    }
 };
 
 using Event = std::variant<Config, TestBinary, TraceEvent>;
