@@ -7,6 +7,33 @@
 #include <variant>
 #include <QDebug>
 
+enum class Signal {
+    sighup,
+    sigint,
+    sigquit,
+    sigabrt,
+    sigfpe,
+    sigkill,
+    sigill,
+    sigsegv,
+    sigpipe,
+    sigalrm,
+    sigterm,
+    sigusr1,
+    sigusr2,
+    sigchld,
+    sigcont,
+    sigstop,
+    sigtstp,
+    sigttin,
+    sigttou,
+    unknown
+};
+
+Signal str_to_sig(const QString& s);
+
+QString sig_to_str(Signal s);
+
 enum class RunType {
     Tests,
     Doctests,
@@ -32,7 +59,7 @@ struct TestBinary {
 struct TraceEvent {
     std::optional<uint64_t> pid;
     std::optional<uint64_t> child;
-    std::optional<QString> signal;
+    std::optional<Signal> signal;
     std::optional<uint64_t> addr;
     std::optional<uint64_t> ret;
     std::optional<QString> file;
@@ -48,8 +75,10 @@ struct TraceEvent {
             contents.append(QString("child: %1\n").arg((int)*ch));
         }
         if(auto sig = signal) {
-            contents.append(*sig);
-            contents.append('\n');
+            if(*sig != Signal::unknown) {
+                contents.append(sig_to_str(*sig));
+                contents.append('\n');
+            }
         }
         if(auto a = addr) {
             contents.append(QString("addr: %1\n").arg((uint64_t)*a));
@@ -74,7 +103,7 @@ struct TraceEvent {
             return bad;
         }
         if(auto s = signal) {
-            bad |= (*s == "SIGSEGV") | (*s == "SIGILL");
+            bad |= (*s == Signal::sigsegv) | (*s == Signal::sigill);
         }
         return bad;
     }

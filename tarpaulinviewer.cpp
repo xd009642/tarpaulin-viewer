@@ -21,7 +21,7 @@ TraceEvent json_to_trace(const QJsonObject obj) {
     }
     auto signal = obj.find("signal");
     if(signal != obj.end() && !signal->isNull()) {
-        event.signal = signal->toString();
+        event.signal = str_to_sig(signal->toString());
     }
     auto addr = obj.find("addr");
     if(addr != obj.end() && !addr->isNull()) {
@@ -31,10 +31,6 @@ TraceEvent json_to_trace(const QJsonObject obj) {
             auto loc = location->toObject();
             // if we have a location we have a file and a line
             auto file = loc.find("file")->toString();
-            auto index = file.indexOf("src");
-            if(index > -1) {
-                file.remove(0, index);
-            }
             auto line = (int)loc.find("line")->toDouble();
             event.file = file;
             event.line = line;
