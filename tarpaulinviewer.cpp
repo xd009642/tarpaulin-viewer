@@ -9,7 +9,7 @@
 #include <QDebug>
 #include "types.h"
 
-TraceEvent json_to_trace(const QJsonObject obj) {
+TraceEvent json_to_trace(const QJsonObject obj, const QDir& root) {
     TraceEvent event;
     auto pid = obj.find("pid");
     if(pid != obj.end() && !pid->isNull()) {
@@ -30,7 +30,7 @@ TraceEvent json_to_trace(const QJsonObject obj) {
         if(location != obj.end() && !location->isNull()) {
             auto loc = location->toObject();
             // if we have a location we have a file and a line
-            auto file = loc.find("file")->toString();
+            auto file = root.relativeFilePath(loc.find("file")->toString());
             auto line = (int)loc.find("line")->toDouble();
             event.file = file;
             event.line = line;
@@ -44,9 +44,9 @@ TraceEvent json_to_trace(const QJsonObject obj) {
     return event;
 }
 
-TestBinary json_to_bin(const QJsonObject obj) {
+TestBinary json_to_bin(const QJsonObject obj, const QDir& root) {
     TestBinary bin;
-    QString file = obj.find("path")->toString();
+    QString file = root.relativeFilePath(obj.find("path")->toString());
     if(!file.isEmpty()) {
         file = file.split("/").last();
     }
@@ -96,9 +96,6 @@ TarpaulinViewer::TarpaulinViewer(QWidget *parent)
     QBrush blueBrush(Qt::blue);
     QPen outlinePen(Qt::black);
     outlinePen.setWidth(2);
-
-    scene->addRect(100, 0, 80, 100, outlinePen, blueBrush);
-    scene->addEllipse(0, -100, 300, 60, outlinePen, greenBrush);
 }
 
 TarpaulinViewer::~TarpaulinViewer()
@@ -119,6 +116,14 @@ void TarpaulinViewer::load_traces() {
         qDebug() << "Parsing failed";
     }
     QJsonObject root = doc.object();
+    QDir root_path;
+    QJsonArray paths = root.value("manifest_paths").toArray();
+    for(const QJsonValue& root: paths) {
+        auto tmp = QDir(root.toString());
+        if(root_path == QDir::currentPath() || tmp.count() < root_path.count()) {
+            root_path = tmp;
+        }
+    }
     QJsonArray events = root.value("events").toArray();
     std::vector<std::shared_ptr<Event>> parsed_events;
     for(const QJsonValue& event: events) {
@@ -129,10 +134,10 @@ void TarpaulinViewer::load_traces() {
                 auto conf = Config { entry.value().toString()};
                 parsed_events.push_back(std::make_shared<Event>(conf));
             } else if(entry.key() == "BinaryLaunch") {
-                TestBinary bin =json_to_bin(entry.value().toObject());
+                TestBinary bin = json_to_bin(entry.value().toObject(), root_path);
                 parsed_events.push_back(std::make_shared<Event>(bin));
             } else if(entry.key() == "Trace") {
-                TraceEvent event = json_to_trace(entry.value().toObject());
+                TraceEvent event = json_to_trace(entry.value().toObject(), root_path);
                 parsed_events.push_back(std::make_shared<Event>(event));
             }
         }
