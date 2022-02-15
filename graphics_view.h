@@ -10,16 +10,20 @@
 
 
 struct Node {
-    Node(size_t index, QGraphicsItem* item, std::shared_ptr<Event> event):
+    Node(size_t index, QGraphicsItem* item, std::shared_ptr<Event> event, QColor color):
         event_index(index),
         view(item),
-        event(event)
-    {}
+        event(event),
+        colour(colour)
+    {
+        qDebug()<<"Making node: "<<this->colour.name()<<" or "<<colour.name();
+    }
     size_t event_index;
     QGraphicsItem* view;
     std::shared_ptr<Event> event;
     std::vector<std::weak_ptr<Node>> children;
     std::weak_ptr<Node> parent;
+    QColor colour;
 };
 
 class graphics_view: public QGraphicsView

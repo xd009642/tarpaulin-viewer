@@ -1,5 +1,6 @@
 #include <types.h>
 #include <variant>
+#include <QDebug>
 
 
 Signal str_to_sig(const QString& s) {
@@ -116,3 +117,26 @@ bool is_end_node(std::shared_ptr<Event> event) {
 
 }
 
+QColor get_node_colour(std::shared_ptr<Event> event) {
+    auto result = QColor();
+    if(event) {
+        if(auto trace = std::get_if<TraceEvent>(event.get())) {
+            auto index = static_cast<float>(Signal::_length);
+            auto total_traces =  index + 1;
+            if (auto signal = trace->signal) {
+                index = static_cast<float>(signal.value());
+            }
+            float min_colour = 60.0;
+            float max_colour = 240.0;
+
+            int hue = static_cast<int>((index/total_traces) * (max_colour - min_colour) + min_colour);
+            qDebug()<<"index: "<<index<<" total: "<<total_traces<<" hue: "<<hue;
+
+             result = QColor::fromHsv(hue, 127, 255);
+        } else if (auto bin = std::get_if<TestBinary>(event.get())) {
+            
+        }
+    }
+    qDebug()<<"Colour: "<<result.name();
+    return result;
+}

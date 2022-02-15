@@ -66,6 +66,7 @@ void graphics_view::layout_scene() {
             break;
         }
         auto rect = node->view->boundingRect();
+        auto brush = QBrush(node->colour);
 
         if(auto trace = std::get_if<TraceEvent>(node->event.get())) {
             if(!pid_opt) {
@@ -81,7 +82,7 @@ void graphics_view::layout_scene() {
                 auto ypos = pid_heights[pid];
                 node->view->setY(ypos);
                 node->view->setX(xpos);
-                auto rect = s->addRect(node->view->sceneBoundingRect());
+                auto rect = s->addRect(node->view->sceneBoundingRect(), QPen()); //, brush);
                 if(trace->is_bad()) {
                     rect->setBrush(QColor(255, 0, 0, 90));
                     bad_nodes.push_back(node);
@@ -124,9 +125,12 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
         if(!event) {
             continue;
         }
+        auto colour = get_node_colour(event);
+        qDebug()<<"Received colour: "<<colour.name();
         if(auto conf = std::get_if<Config>(event.get())) {
             auto text_box = s->addText(conf->name, render_font);
-            auto node = std::make_shared<Node>(index, text_box, event);
+        qDebug()<<"making with colour: "<<colour.name();
+            auto node = std::make_shared<Node>(index, text_box, event, colour);
             if(!nodes.empty()) {
                 node->parent = nodes.back();
                 nodes.back()->children.push_back(node);
@@ -134,7 +138,8 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
             nodes.push_back(node);
         } else if(auto bin = std::get_if<TestBinary>(event.get())) {
             auto text_box = s->addText(bin->path, render_font);
-            auto node = std::make_shared<Node>(index, text_box, event);
+        qDebug()<<"making with colour: "<<colour.name();
+            auto node = std::make_shared<Node>(index, text_box, event, colour);
             if(!nodes.empty()) {
                 node->parent = nodes.back();
                 nodes.back()->children.push_back(node);
@@ -143,7 +148,9 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
         } else if(auto trace = std::get_if<TraceEvent>(event.get())) {
             auto contents = trace->to_string();
             auto text_box = s->addText(contents, render_font);
-            auto node = std::make_shared<Node>(index, text_box, event);
+        qDebug()<<"making with colour: "<<colour.name();
+            Node(index, text_box, event, colour);
+            auto node = std::make_shared<Node>(index, text_box, event, colour);
             pid_set.insert(trace->pid.value_or(0));
             for(auto it=nodes.rbegin(); it!=nodes.rend(); ++it) {
                 auto pid = get_pid((*it)->event);

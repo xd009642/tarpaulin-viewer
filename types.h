@@ -6,6 +6,7 @@
 #include <optional>
 #include <variant>
 #include <QDebug>
+#include <QColor>
 
 enum class Signal {
     sighup,
@@ -27,7 +28,8 @@ enum class Signal {
     sigtstp,
     sigttin,
     sigttou,
-    unknown
+    unknown,
+    _length
 };
 
 Signal str_to_sig(const QString& s);
@@ -41,8 +43,14 @@ enum class RunType {
     Examples,
     Lib,
     Bins,
-    AllTargets
+    AllTargets,
+    _length
 };
+
+constexpr size_t num_colours() {
+    // 2 extras are for nullopt_t
+    return static_cast<size_t>(RunType::_length) + static_cast<size_t>(Signal::_length) + 2;
+}
 
 struct Config {
     QString name;
@@ -115,6 +123,8 @@ using Event = std::variant<Config, TestBinary, TraceEvent>;
 std::optional<uint64_t> get_child(std::shared_ptr<Event> event);
 
 std::optional<uint64_t> get_pid(std::shared_ptr<Event> event);
+
+QColor get_node_colour(std::shared_ptr<Event> event);
 
 bool is_end_node(std::shared_ptr<Event> event);
 

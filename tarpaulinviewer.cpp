@@ -92,10 +92,6 @@ TarpaulinViewer::TarpaulinViewer(QWidget *parent)
 
     connect(ui->reset, &QPushButton::pressed, ui->graphicsView, &graphics_view::reset);
     connect(ui->load, &QPushButton::pressed, this, &TarpaulinViewer::load_traces);
-    QBrush greenBrush(Qt::green);
-    QBrush blueBrush(Qt::blue);
-    QPen outlinePen(Qt::black);
-    outlinePen.setWidth(2);
 }
 
 TarpaulinViewer::~TarpaulinViewer()
