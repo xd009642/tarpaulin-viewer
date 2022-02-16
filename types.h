@@ -9,26 +9,26 @@
 #include <QColor>
 
 enum class Signal {
+    sigtstp,
     sighup,
     sigint,
     sigquit,
     sigabrt,
     sigfpe,
+    sigsegv,
     sigkill,
     sigill,
-    sigsegv,
     sigpipe,
+    sigcont,
     sigalrm,
-    sigterm,
     sigusr1,
+    unknown,
     sigusr2,
     sigchld,
-    sigcont,
-    sigstop,
-    sigtstp,
     sigttin,
+    sigstop,
     sigttou,
-    unknown,
+    sigterm,
     _length
 };
 

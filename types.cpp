@@ -117,26 +117,36 @@ bool is_end_node(std::shared_ptr<Event> event) {
 
 }
 
+float generate_hue(int ind, int length, float min_colour, float max_colour) {
+    auto index = static_cast<float>(ind);
+    auto total =  static_cast<float>(length);
+
+    return static_cast<int>((index/total) * (max_colour - min_colour) + min_colour);
+}
+
+
 QColor get_node_colour(std::shared_ptr<Event> event) {
     auto result = QColor();
     if(event) {
         if(auto trace = std::get_if<TraceEvent>(event.get())) {
-            auto index = static_cast<float>(Signal::_length);
-            auto total_traces =  index + 1;
+            auto index = 0;
+            auto total_traces = static_cast<int>(Signal::_length) + 2;
             if (auto signal = trace->signal) {
-                index = static_cast<float>(signal.value());
+                index = static_cast<int>(signal.value()) + 1;
+            } else if(trace->ret) {
+                index = total_traces;
             }
-            float min_colour = 60.0;
-            float max_colour = 240.0;
-
-            int hue = static_cast<int>((index/total_traces) * (max_colour - min_colour) + min_colour);
-            qDebug()<<"index: "<<index<<" total: "<<total_traces<<" hue: "<<hue;
-
-             result = QColor::fromHsv(hue, 127, 255);
+            int hue = generate_hue(index, total_traces, 55.0, 355.0);
+            result = QColor::fromHsv(hue, 127, 255);
         } else if (auto bin = std::get_if<TestBinary>(event.get())) {
-            
+            auto index = static_cast<int>(RunType::_length);
+            auto total_traces =  index + 1;
+            if (auto signal = bin->ty) {
+                index = static_cast<int>(signal.value());
+            }
+            int hue = generate_hue(index, total_traces, 0, 55.0);
+            result = QColor::fromHsv(hue, 127, 255);
         }
     }
-    qDebug()<<"Colour: "<<result.name();
     return result;
 }

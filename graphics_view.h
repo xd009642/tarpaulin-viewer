@@ -10,13 +10,11 @@
 
 
 struct Node {
-    Node(size_t index, QGraphicsItem* item, std::shared_ptr<Event> event, QColor color):
+    Node(size_t index, QGraphicsItem* item, std::shared_ptr<Event> event):
         event_index(index),
         view(item),
-        event(event),
-        colour(colour)
+        event(event)
     {
-        qDebug()<<"Making node: "<<this->colour.name()<<" or "<<colour.name();
     }
     size_t event_index;
     QGraphicsItem* view;
