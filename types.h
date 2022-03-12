@@ -56,6 +56,10 @@ struct Config {
     QString name;
 };
 
+struct Marker {
+
+};
+
 struct TestBinary {
     QString path;
     std::optional<RunType> ty;
@@ -117,7 +121,7 @@ struct TraceEvent {
     }
 };
 
-using Event = std::variant<Config, TestBinary, TraceEvent>;
+using Event = std::variant<Config, TestBinary, TraceEvent, Marker>;
 
 
 std::optional<uint64_t> get_child(std::shared_ptr<Event> event);
@@ -127,5 +131,7 @@ std::optional<uint64_t> get_pid(std::shared_ptr<Event> event);
 QColor get_node_colour(std::shared_ptr<Event> event);
 
 bool is_end_node(std::shared_ptr<Event> event);
+
+bool is_marker(std::shared_ptr<Event> event);
 
 #endif // TYPES_H

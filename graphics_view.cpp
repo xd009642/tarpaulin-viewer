@@ -56,7 +56,9 @@ void graphics_view::layout_scene() {
     }
     qDebug()<<"Lane height: "<<lane_height;
     auto meta_y = 3.0*MARGIN+lane_height;
+    std::vector<qreal> x_positions;
     while(!queue.empty()) {
+        x_positions.push_back(xpos);
         std::shared_ptr<Node> node = queue.top();
         event_indexes[node->view] = node->event_index;
         queue.pop();
@@ -65,9 +67,9 @@ void graphics_view::layout_scene() {
             qDebug()<<"Index assumption has broken! "<<node->event_index<<":"<<last_index+1;
             break;
         }
+
         auto rect = node->view->boundingRect();
         auto brush = QBrush(node->colour);
-
         if(auto trace = std::get_if<TraceEvent>(node->event.get())) {
             if(!pid_opt) {
                 node->view->setX(xpos);
@@ -109,12 +111,29 @@ void graphics_view::layout_scene() {
             }
         }
     }
+
+    for(size_t index: markers) {
+        auto x = x_positions[index] - MARGIN/2.0;
+        auto parent_rect = s->sceneRect();
+        auto top_connector = parent_rect.topRight();
+        top_connector.setX(x);
+        auto bottom_connector = parent_rect.bottomRight();
+        bottom_connector.setX(top_connector.x());
+
+        QPen marker_pen;
+        marker_pen.setStyle(Qt::DashLine);
+        marker_pen.setColor(QColor(0, 0, 0, 200));
+
+        s->addLine({top_connector, bottom_connector}, marker_pen);
+    }
+
     update();
 }
 
 void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& events) {
     QGraphicsScene* s = scene();
     s->clear();
+    markers.clear();
     nodes.clear();
     event_indexes.clear();
     QFontMetrics fm(render_font);
@@ -126,7 +145,10 @@ void graphics_view::create_scene(const std::vector<std::shared_ptr<Event>>& even
             continue;
         }
         auto colour = get_node_colour(event);
-        if(auto conf = std::get_if<Config>(event.get())) {
+        if (is_marker(event)) {
+            markers.insert(index);
+            continue;
+        } else if(auto conf = std::get_if<Config>(event.get())) {
             auto text_box = s->addText(conf->name, render_font);
             text_box->setZValue(1);
             auto node = std::make_shared<Node>(index, text_box, event);

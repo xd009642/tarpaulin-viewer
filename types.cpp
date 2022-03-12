@@ -150,3 +150,12 @@ QColor get_node_colour(std::shared_ptr<Event> event) {
     }
     return result;
 }
+
+
+bool is_marker(std::shared_ptr<Event> event) {
+    if(event) {
+        return event->index() == 3;
+    } else {
+        return false;
+    }
+}

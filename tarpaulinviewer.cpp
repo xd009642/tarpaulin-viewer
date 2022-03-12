@@ -135,6 +135,9 @@ void TarpaulinViewer::load_traces() {
             } else if(entry.key() == "Trace") {
                 TraceEvent event = json_to_trace(entry.value().toObject(), root_path);
                 parsed_events.push_back(std::make_shared<Event>(event));
+            } else if(entry.key() == "Marker") {
+                Marker m{};
+                parsed_events.push_back(std::make_shared<Event>(m));
             }
         }
     }

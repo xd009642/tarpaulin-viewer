@@ -3,6 +3,7 @@
 
 #include <QGraphicsView>
 #include <QFont>
+#include <set>
 #include <memory>
 #include <vector>
 #include "types.h"
@@ -59,6 +60,7 @@ protected:
     std::optional<size_t> selected_node;
     size_t pid_count = 0;
     std::vector<std::shared_ptr<Node>> nodes;
+    std::set<size_t> markers;
     std::map<QGraphicsItem*, size_t> event_indexes;
     QFont render_font;
     std::vector<std::weak_ptr<Node>> bad_nodes;
